@@ -11,15 +11,28 @@
 <style>
   :root{
     --white:#FFFFFF;
-    --dark:#0C2725;
-    --teal:#319B88;
-    --aqua:#75FEEA;
+    --ink:#1E1B2E;
+    --ink-soft:#4A4560;
+    --dark:#15112B;
 
-    --surface: rgba(255,255,255,0.045);
-    --surface-strong: rgba(255,255,255,0.08);
-    --line: rgba(255,255,255,0.10);
-    --text-dim: rgba(255,255,255,0.55);
-    --text-faint: rgba(255,255,255,0.32);
+    --bg:#F6F4FC;
+    --surface:#FFFFFF;
+    --surface-tint: rgba(30,27,46,0.035);
+    --surface-strong: rgba(30,27,46,0.06);
+    --line: rgba(30,27,46,0.10);
+    --text-dim: rgba(30,27,46,0.60);
+    --text-faint: rgba(30,27,46,0.40);
+
+    --coral:#FF5470;
+    --coral-text:#D6335A;
+    --violet:#7B5EFF;
+    --violet-text:#6A46E8;
+    --teal:#12B886;
+    --teal-text:#0B8F68;
+    --amber:#F5A524;
+    --amber-text:#B45309;
+    --red:#FF5C5C;
+    --red-text:#DC2626;
   }
 
   *{ margin:0; padding:0; box-sizing:border-box; }
@@ -27,14 +40,14 @@
   body{
     font-family:'Inter', -apple-system, sans-serif;
     background:
-      radial-gradient(circle at 15% -10%, rgba(117,254,234,0.10), transparent 45%),
-      radial-gradient(circle at 100% 10%, rgba(49,155,136,0.16), transparent 55%),
-      var(--dark);
+      radial-gradient(circle at 12% -8%, rgba(255,84,112,0.14), transparent 45%),
+      radial-gradient(circle at 102% 6%, rgba(123,94,255,0.16), transparent 55%),
+      var(--bg);
     min-height:100vh;
     display:flex;
     justify-content:center;
     padding:20px 14px 40px;
-    color:var(--white);
+    color:var(--ink);
   }
 
   .app{ max-width:460px; width:100%; }
@@ -44,15 +57,16 @@
 
   .mark{
     width:42px; height:42px; border-radius:12px;
-    background:linear-gradient(155deg, var(--aqua), var(--teal));
+    background:linear-gradient(155deg, var(--coral), var(--violet));
     display:flex; align-items:center; justify-content:center;
-    color:var(--dark); font-size:18px; flex-shrink:0;
-    box-shadow:0 6px 20px rgba(117,254,234,0.25);
+    color:var(--white); font-size:18px; flex-shrink:0;
+    box-shadow:0 6px 20px rgba(255,84,112,0.28);
   }
 
   h1{
     font-family:'Space Grotesk', sans-serif;
     font-size:19px; font-weight:700; line-height:1.15;
+    color:var(--ink);
   }
   header .sub{ font-size:12.5px; color:var(--text-dim); margin-top:2px; }
 
@@ -62,11 +76,12 @@
     font-size:11px; color:var(--text-dim);
     background:var(--surface); border:1px solid var(--line);
     padding:6px 10px; border-radius:20px; white-space:nowrap;
+    box-shadow:0 2px 8px rgba(30,27,46,0.04);
   }
   .conn .dot{ width:6px; height:6px; border-radius:50%; background:#888; flex-shrink:0; }
-  .conn .dot.online{ background:var(--aqua); box-shadow:0 0 8px var(--aqua); }
-  .conn .dot.offline{ background:#f87171; animation:blink 1s ease-in-out infinite; }
-  .conn .dot.checking{ background:#fbbf24; animation:blink .8s ease-in-out infinite; }
+  .conn .dot.online{ background:var(--teal); box-shadow:0 0 8px rgba(18,184,134,0.6); }
+  .conn .dot.offline{ background:var(--red); animation:blink 1s ease-in-out infinite; }
+  .conn .dot.checking{ background:var(--amber); animation:blink .8s ease-in-out infinite; }
   @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
 
   /* -------------------- TOAST -------------------- */
@@ -79,10 +94,10 @@
   }
   #status i{ font-size:15px; flex-shrink:0; }
   @keyframes slideUp{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
-  #status.success{ display:flex; background:rgba(117,254,234,0.14); color:var(--aqua); border-color:rgba(117,254,234,0.3); }
-  #status.error{ display:flex; background:rgba(248,113,113,0.12); color:#fca5a5; border-color:rgba(248,113,113,0.3); }
-  #status.warning{ display:flex; background:rgba(251,191,36,0.12); color:#fcd34d; border-color:rgba(251,191,36,0.3); }
-  #status.info{ display:flex; background:var(--surface); color:var(--white); border-color:var(--line); }
+  #status.success{ display:flex; background:rgba(18,184,134,0.12); color:var(--teal-text); border-color:rgba(18,184,134,0.3); }
+  #status.error{ display:flex; background:rgba(255,92,92,0.12); color:var(--red-text); border-color:rgba(255,92,92,0.3); }
+  #status.warning{ display:flex; background:rgba(245,165,36,0.14); color:var(--amber-text); border-color:rgba(245,165,36,0.35); }
+  #status.info{ display:flex; background:var(--surface); color:var(--ink); border-color:var(--line); }
 
   /* -------------------- SCANNER CARD (hero) -------------------- */
   .scanner-card{
@@ -90,12 +105,14 @@
     border:1px solid var(--line);
     border-radius:22px;
     padding:16px;
-    backdrop-filter:blur(16px);
+    box-shadow:0 14px 34px rgba(30,27,46,0.07);
   }
 
+  /* Satu-satunya elemen gelap yang disengaja — viewfinder kamera,
+     biar tetap kontras & fokus perhatian saat scan (sisanya terang). */
   .scanner-area{
     position:relative;
-    background:#06110F;
+    background:var(--dark);
     border-radius:16px;
     min-height:280px;
     width:100%;
@@ -111,39 +128,39 @@
   .scan-frame{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
     width:62%; height:42%;
-    border:2px solid rgba(117,254,234,0.55);
+    border:2px solid rgba(255,84,112,0.6);
     border-radius:14px;
-    box-shadow:0 0 0 3000px rgba(6,17,15,0.55);
+    box-shadow:0 0 0 3000px rgba(21,17,43,0.55);
   }
-  .corner{ position:absolute; width:18px; height:18px; border-color:var(--aqua); border-style:solid; border-width:0; }
+  .corner{ position:absolute; width:18px; height:18px; border-color:var(--coral); border-style:solid; border-width:0; }
   .corner-tl{ top:-2px; left:-2px; border-top-width:3px; border-left-width:3px; border-radius:5px 0 0 0; }
-  .corner-tr{ top:-2px; right:-2px; border-top-width:3px; border-right-width:3px; border-radius:0 5px 0 0; }
-  .corner-bl{ bottom:-2px; left:-2px; border-bottom-width:3px; border-left-width:3px; border-radius:0 0 0 5px; }
+  .corner-tr{ top:-2px; right:-2px; border-top-width:3px; border-right-width:3px; border-radius:0 5px 0 0; border-color:var(--violet); }
+  .corner-bl{ bottom:-2px; left:-2px; border-bottom-width:3px; border-left-width:3px; border-radius:0 0 0 5px; border-color:var(--violet); }
   .corner-br{ bottom:-2px; right:-2px; border-bottom-width:3px; border-right-width:3px; border-radius:0 0 5px 0; }
 
   .scan-line{
     position:absolute; left:19%; right:19%; height:2px; top:29%;
-    background:linear-gradient(90deg, transparent, var(--aqua), var(--teal), transparent);
+    background:linear-gradient(90deg, transparent, var(--coral), var(--violet), transparent);
     animation:scanMove 2.2s ease-in-out infinite;
-    box-shadow:0 0 16px rgba(117,254,234,0.4);
+    box-shadow:0 0 16px rgba(255,84,112,0.45);
   }
   @keyframes scanMove{ 0%{top:29%; opacity:.5;} 50%{top:71%; opacity:1;} 100%{top:29%; opacity:.5;} }
 
   .scan-text{
     position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
     font-size:11px; font-weight:500; color:var(--white);
-    background:rgba(6,17,15,0.7); backdrop-filter:blur(6px);
+    background:rgba(21,17,43,0.75); backdrop-filter:blur(6px);
     padding:6px 14px; border-radius:16px;
     display:flex; align-items:center; gap:7px;
-    border:1px solid var(--line); white-space:nowrap;
+    border:1px solid rgba(255,255,255,0.12); white-space:nowrap;
   }
-  .scan-text i{ color:var(--aqua); animation:pulseIcon 1.4s ease-in-out infinite; }
+  .scan-text i{ color:var(--coral); animation:pulseIcon 1.4s ease-in-out infinite; }
   @keyframes pulseIcon{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
 
   .result-line{
     text-align:center; font-family:'Space Grotesk', sans-serif;
     font-size:15px; font-weight:600; padding:14px 4px 4px;
-    color:var(--white); min-height:26px;
+    color:var(--ink); min-height:26px;
   }
 
   .scanner-controls{ display:flex; gap:10px; margin-top:10px; }
@@ -151,28 +168,29 @@
 
   .btn-scan{
     flex:1; padding:12px; border:none; border-radius:13px;
-    background:var(--aqua); color:var(--dark);
+    background:linear-gradient(135deg, var(--coral), var(--violet)); color:var(--white);
     font-weight:700; font-size:14px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:8px;
     transition:transform .15s ease, box-shadow .15s ease;
-    box-shadow:0 6px 20px rgba(117,254,234,0.22);
+    box-shadow:0 6px 20px rgba(255,84,112,0.3);
   }
-  .btn-scan:hover{ transform:translateY(-1px); box-shadow:0 8px 26px rgba(117,254,234,0.32); }
-  .btn-scan.stop{ background:#e0574a; color:var(--white); box-shadow:0 6px 20px rgba(224,87,74,0.25); }
+  .btn-scan:hover{ transform:translateY(-1px); box-shadow:0 8px 26px rgba(255,84,112,0.4); }
+  .btn-scan.stop{ background:var(--red); color:var(--white); box-shadow:0 6px 20px rgba(255,92,92,0.3); }
 
   .btn-flash{
     flex:0 0 50px; border:1px solid var(--line); border-radius:13px;
-    background:var(--surface-strong); color:var(--white); cursor:pointer;
+    background:var(--surface-strong); color:var(--ink-soft); cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     transition:background .15s ease;
   }
-  .btn-flash:hover{ background:rgba(255,255,255,0.14); }
-  .btn-flash.active{ background:#f1c40f; color:#2c1a00; border-color:#f1c40f; }
+  .btn-flash:hover{ background:rgba(30,27,46,0.1); }
+  .btn-flash.active{ background:var(--amber); color:var(--ink); border-color:var(--amber); }
 
   /* -------------------- ADMIN PANEL (secondary, collapsed) -------------------- */
   details.admin{
     margin-top:12px; background:var(--surface); border:1px solid var(--line);
     border-radius:16px; overflow:hidden;
+    box-shadow:0 10px 26px rgba(30,27,46,0.05);
   }
   details.admin summary{
     list-style:none; cursor:pointer; padding:13px 16px;
@@ -182,7 +200,7 @@
   details.admin summary::-webkit-details-marker{ display:none; }
   details.admin summary i.fa-chevron-down{ margin-left:auto; font-size:11px; transition:transform .2s ease; color:var(--text-faint); }
   details.admin[open] summary i.fa-chevron-down{ transform:rotate(180deg); }
-  details.admin summary i.fa-id-card{ color:var(--teal); }
+  details.admin summary i.fa-id-card{ color:var(--violet); }
 
   .admin-body{ padding:0 16px 16px; }
   .admin-body p{ font-size:12px; color:var(--text-faint); margin-bottom:10px; line-height:1.5; }
@@ -190,85 +208,120 @@
   .qr-input-group{ display:flex; gap:8px; }
   .qr-input-group input{
     flex:1; padding:10px 13px; border-radius:11px;
-    border:1px solid var(--line); background:rgba(255,255,255,0.04);
-    color:var(--white); font-size:13.5px;
+    border:1px solid var(--line); background:var(--surface-tint);
+    color:var(--ink); font-size:13.5px;
   }
-  .qr-input-group input:focus{ outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(49,155,136,0.2); }
+  .qr-input-group input:focus{ outline:none; border-color:var(--violet); box-shadow:0 0 0 3px rgba(123,94,255,0.18); }
   .qr-input-group input::placeholder{ color:var(--text-faint); }
   .qr-input-group button{
-    padding:10px 16px; background:var(--teal); color:var(--white);
+    padding:10px 16px; background:var(--violet); color:var(--white);
     border:none; border-radius:11px; font-weight:600; font-size:13px; cursor:pointer;
     white-space:nowrap;
   }
-  .qr-input-group button:hover{ filter:brightness(1.1); }
+  .qr-input-group button:hover{ filter:brightness(1.08); }
+
+  /* -------------------- FORM DAFTAR MAHASISWA BARU -------------------- */
+  /* Muncul kalau NIM yang dicek di "Buat QR" belum ada di sheet. */
+  .form-daftar{
+    display:none; margin-top:12px; padding:14px;
+    background:rgba(245,165,36,0.09); border:1px solid rgba(245,165,36,0.3);
+    border-radius:13px;
+  }
+  .form-daftar.show{ display:block; animation:slideUp .3s ease; }
+  .form-daftar-info{
+    font-size:12px; color:var(--amber-text); line-height:1.5; margin-bottom:10px;
+    display:flex; align-items:flex-start; gap:7px;
+  }
+  .form-daftar-info i{ margin-top:2px; flex-shrink:0; }
+  .form-daftar-fields{ display:flex; flex-direction:column; gap:8px; }
+  .form-daftar-fields input{
+    padding:10px 13px; border-radius:11px;
+    border:1px solid var(--line); background:var(--surface);
+    color:var(--ink); font-size:13.5px; width:100%;
+  }
+  .form-daftar-fields input:focus{ outline:none; border-color:var(--violet); box-shadow:0 0 0 3px rgba(123,94,255,0.18); }
+  .form-daftar-fields input::placeholder{ color:var(--text-faint); }
+  .form-daftar-note{ font-size:11.5px; color:var(--text-faint); margin-top:9px; }
+  .form-daftar-note strong{ color:var(--text-dim); }
+  .form-daftar-actions{ display:flex; gap:8px; margin-top:10px; }
+  .form-daftar-actions button{
+    border:none; border-radius:11px; font-weight:600; font-size:13px; cursor:pointer;
+    padding:10px 14px;
+  }
+  .btn-daftar{ flex:1; background:linear-gradient(135deg, var(--teal), var(--violet)); color:var(--white); display:flex; align-items:center; justify-content:center; gap:7px; }
+  .btn-daftar:hover{ filter:brightness(1.05); }
+  .btn-daftar:disabled{ opacity:.6; cursor:not-allowed; }
+  .btn-batal-daftar{ background:var(--surface-strong); color:var(--ink-soft); }
+  .btn-batal-daftar:hover{ background:rgba(30,27,46,0.1); }
 
   .qr-preview{
     display:none; margin-top:12px; padding:14px; text-align:center;
-    background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:13px;
+    background:var(--surface-tint); border:1px solid var(--line); border-radius:13px;
   }
   .qr-preview.show{ display:block; animation:slideUp .3s ease; }
-  .qr-preview img{ max-width:170px; border-radius:8px; background:var(--white); padding:8px; }
+  .qr-preview img{ max-width:170px; border-radius:8px; background:var(--white); padding:8px; border:1px solid var(--line); }
   .qr-preview .qr-info{ margin-top:8px; font-size:12px; color:var(--text-dim); line-height:1.5; }
-  .qr-preview .qr-info strong{ color:var(--white); }
+  .qr-preview .qr-info strong{ color:var(--ink); }
   .qr-preview .qr-actions{ margin-top:10px; display:flex; gap:8px; justify-content:center; }
   .qr-preview .qr-actions button{
     padding:7px 15px; border:none; border-radius:9px; font-size:12px; font-weight:600; cursor:pointer;
   }
-  .qr-preview .qr-actions .btn-download{ background:var(--aqua); color:var(--dark); }
-  .qr-preview .qr-actions .btn-close{ background:var(--surface-strong); color:var(--white); }
+  .qr-preview .qr-actions .btn-download{ background:var(--teal); color:var(--white); }
+  .qr-preview .qr-actions .btn-close{ background:var(--surface-strong); color:var(--ink-soft); }
 
   /* -------------------- DATA TABLE -------------------- */
   .data-section{
     margin-top:12px; background:var(--surface); border:1px solid var(--line);
     border-radius:16px; overflow:hidden;
+    box-shadow:0 10px 26px rgba(30,27,46,0.05);
   }
   .data-header{
     padding:12px 16px; display:flex; align-items:center; gap:8px;
     border-bottom:1px solid var(--line);
-    background:linear-gradient(90deg, rgba(49,155,136,0.14), transparent);
+    background:linear-gradient(90deg, rgba(123,94,255,0.10), transparent);
   }
-  .data-header .title{ font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
-  .data-header .title i{ color:var(--teal); }
+  .data-header .title{ font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; color:var(--ink); }
+  .data-header .title i{ color:var(--violet); }
   .data-header .refresh{
     margin-left:auto; background:none; border:none; color:var(--text-dim);
     cursor:pointer; font-size:13px; padding:4px 6px; border-radius:8px;
   }
-  .data-header .refresh:hover{ color:var(--aqua); background:rgba(255,255,255,0.06); }
+  .data-header .refresh:hover{ color:var(--coral-text); background:rgba(30,27,46,0.05); }
   .data-header .refresh.spin i{ animation:spin .7s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg); } }
   .data-header .count{
-    font-size:11px; color:var(--text-faint); background:rgba(255,255,255,0.05);
+    font-size:11px; color:var(--text-faint); background:var(--surface-tint);
     padding:2px 10px; border-radius:20px;
   }
 
   .table-wrapper{ max-height:230px; overflow-y:auto; }
   .table-wrapper::-webkit-scrollbar{ width:4px; }
-  .table-wrapper::-webkit-scrollbar-thumb{ background:rgba(117,254,234,0.25); border-radius:4px; }
+  .table-wrapper::-webkit-scrollbar-thumb{ background:rgba(123,94,255,0.3); border-radius:4px; }
 
   table{ width:100%; border-collapse:collapse; font-size:12px; }
   th{
     padding:8px 10px; text-align:left; font-weight:600; font-size:10px;
     letter-spacing:.4px; color:var(--text-faint);
     border-bottom:1px solid var(--line);
-    position:sticky; top:0; background:#0F2E2A;
+    position:sticky; top:0; background:var(--surface);
   }
-  td{ padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--text-dim); }
-  tr:hover td{ background:rgba(255,255,255,0.02); }
-  .status-hadir{ color:var(--aqua); font-weight:600; }
+  td{ padding:8px 10px; border-bottom:1px solid rgba(30,27,46,0.05); color:var(--text-dim); }
+  tr:hover td{ background:rgba(30,27,46,0.02); }
+  .status-hadir{ color:var(--teal-text); font-weight:600; }
   .status-belum{ color:var(--text-faint); }
 
   .loading-text{ text-align:center; padding:22px; font-size:12.5px; color:var(--text-faint); }
   .loading-text i{ margin-right:7px; }
   .loading-text .btn-retry, .loading-text a.btn-retry{
     display:inline-block; margin-top:10px; padding:7px 16px; border-radius:9px;
-    background:var(--teal); color:var(--white); border:none; font-size:12px;
+    background:var(--violet); color:var(--white); border:none; font-size:12px;
     font-weight:600; cursor:pointer; text-decoration:none;
   }
 
   footer{ margin-top:14px; text-align:center; font-size:11px; color:var(--text-faint); }
-  footer a{ color:var(--teal); text-decoration:none; }
+  footer a{ color:var(--violet-text); text-decoration:none; }
   footer a:hover{ text-decoration:underline; }
-  footer i{ color:var(--teal); }
+  footer i{ color:var(--coral-text); }
 
   @media (max-width:400px){
     .scanner-area, #qr-reader{ min-height:230px; }
@@ -327,11 +380,26 @@
   <details class="admin">
     <summary><i class="fas fa-id-card"></i> Buat QR Mahasiswa <i class="fas fa-chevron-down"></i></summary>
     <div class="admin-body">
-      <p>Dipakai sekali per mahasiswa (bukan tiap sesi) — cetak atau simpan QR-nya, dipakai ulang tiap kelas.</p>
+      <p>Dipakai sekali per mahasiswa (bukan tiap sesi) — cetak atau simpan QR-nya, dipakai ulang tiap kelas. Kalau NIM belum terdaftar, sistem otomatis minta data buat daftar dulu.</p>
       <div class="qr-input-group">
         <input type="text" id="qrNimInput" placeholder="Masukkan NIM" maxlength="12">
-        <button onclick="generateQRCode()"><i class="fas fa-qrcode"></i> Buat</button>
+        <button onclick="checkNimAndGenerate()"><i class="fas fa-qrcode"></i> Buat</button>
       </div>
+
+      <!-- Form ini disembunyikan by default, cuma tampil kalau NIM di atas belum ada di sheet -->
+      <div class="form-daftar" id="formDaftarBaru">
+        <p class="form-daftar-info"><i class="fas fa-circle-info"></i> NIM <strong id="daftarNimLabel"></strong> belum terdaftar. Isi data mahasiswa baru di bawah:</p>
+        <div class="form-daftar-fields">
+          <input type="text" id="daftarNamaInput" placeholder="Nama lengkap">
+          <input type="text" id="daftarKelasInput" placeholder="Kelas (mis. TI-4A)">
+        </div>
+        <p class="form-daftar-note">Jurusan otomatis diisi: <strong>Teknik Informatika</strong></p>
+        <div class="form-daftar-actions">
+          <button class="btn-daftar" id="btnDaftarBaru" onclick="daftarMahasiswaBaru()"><i class="fas fa-user-plus"></i> Daftar & Buat QR</button>
+          <button class="btn-batal-daftar" onclick="batalDaftarBaru()">Batal</button>
+        </div>
+      </div>
+
       <div class="qr-preview" id="qrPreview">
         <img id="qrResultImage" src="" alt="QR Code">
         <div class="qr-info" id="qrInfo"></div>
@@ -364,7 +432,7 @@
 
   <footer>
     <i class="fas fa-shield-alt"></i> Terhubung dengan
-    <a href="https://docs.google.com/spreadsheets/d/1Monf-FtWxzlw-SNhVxDsq8G6Xd01aW0U4ZIxzoec3Cc/edit" target="_blank">Google Sheets</a>
+    <a href="https://docs.google.com/spreadsheets/d/1PXOSZAXZNg7hvX-33DglZlM3saj4yclUhiYepiFNYhI/edit" target="_blank">Google Sheets</a>
   </footer>
 
 </div>
@@ -373,9 +441,12 @@
   // ================================================================
   // KONFIGURASI
   // ================================================================
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx1hCCJQIi27SWhkL05Dc7SsKvt-jpGFVZ7uw_AmsNhHX776CDKrmMaD9uaNyOEbxy5aw/exec';
-  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Monf-FtWxzlw-SNhVxDsq8G6Xd01aW0U4ZIxzoec3Cc/edit';
-  const MATA_KULIAH = 'Rekayasa Perangkat Lunak';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbymSSEe8pCfzT8msv8qQfpFg5kQsFh3cZhO8loSpd5WuFXsqBFSQJ2yHco2IG7Gy1jpQA/exec'; // GANTI DI SINI: URL deploy Apps Script punya kamu sendiri
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1PXOSZAXZNg7hvX-33DglZlM3saj4yclUhiYepiFNYhI/edit'; // GANTI DI SINI: link spreadsheet punya kamu sendiri
+  const MATA_KULIAH = 'Rekayasa Perangkat Lunak'; // GANTI DI SINI: nama mata kuliah — sudah otomatis kepakai tiap presensi, gak perlu input manual
+  // Jurusan otomatis buat mahasiswa baru yang daftar lewat "Buat QR".
+  // <!-- GANTI DI SINI kalau nanti ada prodi lain selain Teknik Informatika -->
+  const JURUSAN_DEFAULT = 'Teknik Informatika';
 
   // Setelah presensi sukses, jeda ini sebelum kamera nyala lagi buat mahasiswa berikutnya.
   const SCAN_COOLDOWN_MS = 1000;
@@ -416,7 +487,12 @@
     qrNimInput: document.getElementById('qrNimInput'),
     qrResultImage: document.getElementById('qrResultImage'),
     qrInfo: document.getElementById('qrInfo'),
-    qrPreview: document.getElementById('qrPreview')
+    qrPreview: document.getElementById('qrPreview'),
+    formDaftarBaru: document.getElementById('formDaftarBaru'),
+    daftarNimLabel: document.getElementById('daftarNimLabel'),
+    daftarNamaInput: document.getElementById('daftarNamaInput'),
+    daftarKelasInput: document.getElementById('daftarKelasInput'),
+    btnDaftarBaru: document.getElementById('btnDaftarBaru')
   };
 
   // ================================================================
@@ -566,15 +642,82 @@
   }
 
   // ================================================================
-  // GENERATE QR PER MAHASISWA (admin, dipakai sekali di awal)
+  // BUAT QR PER MAHASISWA (admin, dipakai sekali di awal per mahasiswa)
+  // Kalau NIM sudah ada di sheet -> langsung generate QR.
+  // Kalau belum -> buka form buat daftarin mahasiswa baru dulu.
   // ================================================================
-  function generateQRCode() {
+  function checkNimAndGenerate() {
     const nim = DOM.qrNimInput.value.trim();
     if (!nim) { showStatus('Masukkan NIM terlebih dahulu', 'error'); DOM.qrNimInput.focus(); return; }
 
     const mahasiswa = AppState.mahasiswaData.find(m => m.nim === nim);
-    if (!mahasiswa) { showStatus(`NIM ${nim} tidak terdaftar!`, 'error'); return; }
+    if (mahasiswa) {
+      hideFormDaftarBaru();
+      tampilkanQR(mahasiswa);
+    } else {
+      showFormDaftarBaru(nim);
+    }
+  }
 
+  function showFormDaftarBaru(nim) {
+    DOM.qrPreview.classList.remove('show');
+    DOM.daftarNimLabel.textContent = nim;
+    DOM.daftarNamaInput.value = '';
+    DOM.daftarKelasInput.value = '';
+    DOM.formDaftarBaru.classList.add('show');
+    DOM.daftarNamaInput.focus();
+  }
+
+  function hideFormDaftarBaru() {
+    DOM.formDaftarBaru.classList.remove('show');
+  }
+
+  function batalDaftarBaru() {
+    hideFormDaftarBaru();
+    DOM.qrNimInput.value = '';
+  }
+
+  // Daftarin mahasiswa baru ke sheet "Data Mahasiswa" (NIM, Nama, Kelas
+  // diisi manual; Jurusan otomatis JURUSAN_DEFAULT), lalu langsung
+  // generate QR-nya kalau berhasil.
+  async function daftarMahasiswaBaru() {
+    const nim = DOM.qrNimInput.value.trim();
+    const nama = DOM.daftarNamaInput.value.trim();
+    const kelas = DOM.daftarKelasInput.value.trim();
+
+    if (!nama) { showStatus('Nama wajib diisi', 'error'); DOM.daftarNamaInput.focus(); return; }
+    if (!kelas) { showStatus('Kelas wajib diisi', 'error'); DOM.daftarKelasInput.focus(); return; }
+
+    DOM.btnDaftarBaru.disabled = true;
+    DOM.btnDaftarBaru.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mendaftarkan...';
+
+    try {
+      const response = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'daftar_mahasiswa', nim, nama, kelas, jurusan: JURUSAN_DEFAULT })
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        AppState.mahasiswaData.push(result.data);
+        renderDataTable();
+        hideFormDaftarBaru();
+        showStatus(`${result.data.nama} berhasil didaftarkan`, 'success');
+        tampilkanQR(result.data);
+      } else {
+        // Termasuk kasus "NIM sudah terdaftar" — ditolak, gak auto-update.
+        showStatus(result.message || 'Gagal mendaftarkan mahasiswa', 'error');
+      }
+    } catch (error) {
+      showStatus('Error: ' + error.message, 'error');
+    } finally {
+      DOM.btnDaftarBaru.disabled = false;
+      DOM.btnDaftarBaru.innerHTML = '<i class="fas fa-user-plus"></i> Daftar & Buat QR';
+    }
+  }
+
+  function tampilkanQR(mahasiswa) {
     const qrText = JSON.stringify({ nim: mahasiswa.nim });
     DOM.qrResultImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrText)}`;
     DOM.qrInfo.innerHTML = `<strong>${mahasiswa.nim}</strong> &bull; ${mahasiswa.nama} &bull; Kelas ${mahasiswa.kelas}`;
@@ -751,7 +894,7 @@
     AppState.flashOn = !AppState.flashOn;
     DOM.btnFlash.classList.toggle('active', AppState.flashOn);
     DOM.btnFlash.innerHTML = AppState.flashOn
-      ? '<i class="fas fa-bolt" style="color:#f1c40f;"></i>'
+      ? '<i class="fas fa-bolt"></i>'
       : '<i class="fas fa-bolt"></i>';
     try {
       const video = AppState.html5QrCode && AppState.html5QrCode._videoElement;
