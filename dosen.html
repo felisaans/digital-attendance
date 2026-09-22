@@ -87,6 +87,7 @@
           <div class="qr-info" id="qrInfo"></div>
           <div class="qr-actions">
             <button class="btn-download" onclick="downloadQRCode()"><i class="fas fa-download"></i> Download</button>
+            <button class="btn-whatsapp" onclick="shareQRCodeWhatsApp()"><i class="fa-brands fa-whatsapp"></i> Bagikan</button>
             <button class="btn-close" onclick="closeQRPreview()"><i class="fas fa-times"></i> Tutup</button>
           </div>
         </div>
@@ -367,13 +368,15 @@
 
   function downloadQRCode() {
     if (!DOM.qrResultImage.src) return;
-    const link = document.createElement('a');
     const nim = DOM.qrNimInput.value.trim() || 'mahasiswa';
-    link.download = `qr-${nim}.png`;
-    link.href = DOM.qrResultImage.src;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadQrImage(DOM.qrResultImage.src, `qr-${nim}.png`);
+  }
+
+  function shareQRCodeWhatsApp() {
+    if (!DOM.qrResultImage.src) return;
+    const nim = DOM.qrNimInput.value.trim() || 'mahasiswa';
+    const info = DOM.qrInfo.textContent || '';
+    shareQrWhatsApp(DOM.qrResultImage.src, `qr-${nim}.png`, `QR Presensi — ${info}`);
   }
 
   function closeQRPreview() {

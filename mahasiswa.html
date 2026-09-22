@@ -38,6 +38,10 @@
         <div class="mhs-name" id="mhsNama">-</div>
         <div class="mhs-meta" id="mhsMeta">-</div>
         <div class="mhs-qr-box"><img id="mhsQrImage" src="" alt="QR Mahasiswa"></div>
+        <div class="qr-actions">
+          <button class="btn-download" onclick="handleDownloadQR()"><i class="fas fa-download"></i> Download</button>
+          <button class="btn-whatsapp" onclick="handleShareWhatsApp()"><i class="fa-brands fa-whatsapp"></i> Bagikan</button>
+        </div>
         <div class="mhs-status waiting" id="mhsStatus"><i class="fas fa-circle-notch"></i> <span>Menunggu di-scan dosen...</span></div>
         <br>
         <button class="mhs-ganti" onclick="mhsGantiNim()">Bukan kamu? Ganti NIM</button>
@@ -129,6 +133,18 @@
     DOM.mhsQrWrap.classList.add('show');
 
     startMhsPolling(nim);
+  }
+
+  function handleDownloadQR() {
+    if (!AppState.mhsCurrentNim) return;
+    downloadQrImage(DOM.mhsQrImage.src, `qr-${AppState.mhsCurrentNim}.png`);
+  }
+
+  function handleShareWhatsApp() {
+    if (!AppState.mhsCurrentNim) return;
+    const nama = DOM.mhsNama.textContent || '';
+    const text = `QR Presensi saya — ${nama} (${AppState.mhsCurrentNim}), ${MATA_KULIAH}`;
+    shareQrWhatsApp(DOM.mhsQrImage.src, `qr-${AppState.mhsCurrentNim}.png`, text);
   }
 
   function mhsGantiNim() {

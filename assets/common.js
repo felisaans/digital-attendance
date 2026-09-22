@@ -32,6 +32,58 @@ async function checkConnection() {
   }
 }
 
+// ================================================================
+// DOWNLOAD & SHARE QR (dipakai di dosen.html & mahasiswa.html)
+// ================================================================
+async function fetchImageBlob(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Gagal mengambil gambar QR');
+  return await res.blob();
+}
+
+async function downloadQrImage(url, filename) {
+  try {
+    const blob = await fetchImageBlob(url);
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
+  } catch (e) {
+    // fallback: buka di tab baru biar bisa disimpan manual (long-press / klik kanan)
+    window.open(url, '_blank');
+  }
+}
+
+// Coba pakai Web Share API (buka share sheet asli HP, termasuk WhatsApp,
+// dengan gambar QR terlampir langsung). Kalau browser gak dukung share
+// file (kebanyakan desktop), QR didownload otomatis lalu WhatsApp Web
+// dibuka dengan teksnya — tinggal lampirkan manual.
+async function shareQrWhatsApp(url, filename, text) {
+  try {
+    const blob = await fetchImageBlob(url);
+    const file = new File([blob], filename, { type: blob.type || 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'QR Presensi', text: text || '' });
+      return;
+    }
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
+  } catch (e) {
+    if (e && e.name === 'AbortError') return; // user batalin share sheet, gapapa
+  }
+  window.open('https://wa.me/?text=' + encodeURIComponent(text || ''), '_blank');
+}
+
 function showStatus(message, type = 'info', duration = 4000) {
   const el = document.getElementById('status');
   if (!el) return;

@@ -51,6 +51,8 @@ body{
   font-size:1rem;
   line-height:1.5;
   overflow-x:hidden;
+  display:flex;
+  flex-direction:column;
 }
 
 button{ font-family:inherit; }
@@ -208,7 +210,12 @@ a{ color:inherit; }
 .app-topbar .sub{ font-size:0.82rem; color:var(--text-dim); margin-top:1px; }
 .app-topbar .conn{ margin-left:auto; }
 
-.app-body{ padding:22px clamp(16px,4vw,40px) 60px; max-width:1180px; margin:0 auto; }
+.app-body{
+  flex:1; width:100%;
+  padding:32px clamp(16px,4vw,40px) 48px; max-width:1180px; margin:0 auto;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.app-body > *{ width:100%; }
 
 /* Toast */
 #status{
@@ -386,13 +393,15 @@ details.admin summary i.fa-id-card{ color:var(--accent-dark); }
 .qr-preview img{ max-width:190px; border-radius:10px; background:var(--white); padding:9px; border:1px solid var(--line); }
 .qr-preview .qr-info{ margin-top:9px; font-size:0.88rem; color:var(--text-dim); line-height:1.55; }
 .qr-preview .qr-info strong{ color:var(--ink); }
-.qr-preview .qr-actions{ margin-top:11px; display:flex; gap:8px; justify-content:center; }
-.qr-preview .qr-actions button{
+.qr-actions{ margin-top:11px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+.qr-actions button{
   border:none; border-radius:11px; font-weight:600; font-size:0.85rem; cursor:pointer;
   padding:10px 16px; display:flex; align-items:center; gap:6px;
 }
 .btn-download{ background:var(--accent-dark); color:var(--white); }
 .btn-download:hover{ filter:brightness(1.08); }
+.btn-whatsapp{ background:#25D366; color:var(--white); }
+.btn-whatsapp:hover{ filter:brightness(1.06); }
 .btn-close{ background:var(--surface-strong); color:var(--ink-soft); }
 .btn-close:hover{ background:rgba(13,27,46,0.1); }
 
