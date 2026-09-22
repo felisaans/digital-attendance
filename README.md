@@ -1,17 +1,24 @@
-# Presensi Kelas — Update
+# Presensi Kelas — Update tema & multi-halaman
 
 ## Apa yang berubah
-- **Landing page full-screen** dengan judul sistem + 2 tombol besar: **Mulai Absensi** (dosen) dan **Absen** (mahasiswa) — bukan langsung form di tengah lagi.
-- **Mode Dosen**: scanner kamera + panel "Buat QR Mahasiswa" + daftar mahasiswa live (sekarang ada kolom cari, dan counter "X/Y hadir").
-- **Mode Mahasiswa**: masukkan NIM sekali (diingat otomatis di device), QR pribadi langsung muncul besar untuk ditunjukkan ke kamera dosen, plus status "menunggu di-scan" → "Hadir jam segini" real-time.
-- **Font & tombol diperbesar** di semua layar biar gampang dibaca dari jarak jauh (misal QR ditunjukkan dari depan kelas).
-- **Bug status "Belum" walau sudah presensi (setelah refresh) — DIPERBAIKI.** Ini bug di backend lama, bukan di tampilan: tanggal presensi dulu dibandingkan sebagai objek Date yang rawan meleset timezone. Backend baru (`Code.gs`) menyimpan tanggal & jam sebagai teks biasa dengan zona waktu tetap (Asia/Jakarta), jadi pengecekan "sudah presensi hari ini atau belum" selalu konsisten walau di-refresh berkali-kali.
+- **Tema diganti total** mengikuti referensi (studio biru dengan glass/glow effect): gradient biru langit, ring cahaya neon, tombol pill periwinkle, dan panel kaca (glassmorphism).
+- **Landing disederhanakan** — cuma judul, satu baris subjudul, dan dua tombol besar (Dosen / Mahasiswa). Bagian penjelasan langkah 1-2-3 dan teks panjang dihapus.
+- **Dipecah jadi halaman terpisah**, bukan satu file dengan toggle screen lagi:
+  - `index.html` — landing
+  - `dosen.html` — mode dosen
+  - `mahasiswa.html` — mode mahasiswa
+  - `assets/style.css` — semua styling (tema baru, dipakai bersama)
+  - `assets/config.js` — WEB_APP_URL, SHEET_URL, MATA_KULIAH (edit di satu tempat, berlaku ke semua halaman)
+  - `assets/common.js` — fungsi util yang dipakai dosen.html & mahasiswa.html
+- **Halaman Dosen tidak digrid lagi.** Sebelumnya scanner + tabel mahasiswa side-by-side di layar lebar. Sekarang semuanya satu kolom dan area scanner dibuat besar (min-height 440px, bingkai scan 70%×60%) supaya mahasiswa gampang memposisikan QR ke kamera.
+- Logika (scanner, presensi, polling, generate QR) tidak diubah — hanya dipindah ke file masing-masing.
 
 ## Isi folder
-- `index.html` — tampilan (landing + mode dosen + mode mahasiswa), satu file, tinggal host di mana saja (GitHub Pages dll).
-- `Code.gs` — backend baru, ditulis ulang dari nol. **Wajib pasang ulang** (lihat langkah di bawah) — instruksi lengkap ada di komentar paling atas file ini juga.
+- `index.html`, `dosen.html`, `mahasiswa.html` — tiga halaman terpisah, tinggal host bareng di folder yang sama (GitHub Pages dll, tidak perlu server backend tambahan).
+- `assets/` — CSS & JS bersama yang dipakai ketiga halaman.
+- `Code.gs` — backend Apps Script (tidak diubah dari versi sebelumnya).
 
-## Cara pasang (Apps Script)
+## Cara pasang (Apps Script) — sama seperti sebelumnya
 1. Buka Google Spreadsheet kamu (boleh pakai yang lama, boleh baru).
 2. Pastikan ada 2 sheet dengan nama & kolom PERSIS begini:
    - **Data Mahasiswa**: `NIM | Nama | Kelas | Jurusan`
@@ -22,9 +29,10 @@
    - Execute as: **Me**
    - Who has access: **Anyone**
 5. Copy **Web app URL** hasil deploy.
-6. Buka `index.html`, cari baris dengan komentar `GANTI DI SINI`, tempel URL tadi ke `WEB_APP_URL`. Cek juga `SHEET_URL` dan `MATA_KULIAH` di baris yang sama.
+6. Buka `assets/config.js`, cari baris dengan komentar `GANTI DI SINI`, tempel URL tadi ke `WEB_APP_URL`. Cek juga `SHEET_URL` dan `MATA_KULIAH` — ini otomatis berlaku ke `index.html`, `dosen.html`, dan `mahasiswa.html` sekaligus.
 7. Kalau nanti edit `Code.gs` lagi, jangan lupa **Manage deployments > Edit > New version** supaya perubahan beneran kepakai (bukan cuma auto-save).
 
 ## Catatan
-- Mahasiswa yang belum terdaftar di sheet "Data Mahasiswa" akan diminta didaftarkan dulu oleh dosen lewat panel "Buat QR Mahasiswa" di Mode Dosen — mode Mahasiswa sengaja tidak bisa daftar sendiri, biar data roster tetap dikontrol dosen.
+- Mahasiswa yang belum terdaftar di sheet "Data Mahasiswa" akan diminta didaftarkan dulu oleh dosen lewat panel "Buat QR Mahasiswa" di `dosen.html` — `mahasiswa.html` sengaja tidak bisa daftar sendiri, biar data roster tetap dikontrol dosen.
 - Kamera butuh HTTPS (GitHub Pages otomatis HTTPS, aman).
+- Karena sekarang 3 file HTML terpisah + folder `assets/`, upload semuanya (jaga strukturnya) ke hosting kamu — jangan cuma `index.html`.

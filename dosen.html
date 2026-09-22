@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Mode Dosen — Presensi Kelas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-topbar">
+  <a class="btn-back" href="index.html" title="Kembali"><i class="fas fa-arrow-left"></i></a>
+  <div>
+    <h2>Mode Dosen</h2>
+    <div class="sub" id="matkulLabel">Rekayasa Perangkat Lunak</div>
+  </div>
+  <div class="conn on-light">
+    <span class="dot checking"></span>
+    <span class="conn-label">Mengecek...</span>
+  </div>
+</div>
+
+<div class="app-body">
+  <div id="status"></div>
+
+  <div class="dosen-stack">
+
+    <!-- Scanner besar — biar gampang diposisikan mahasiswa -->
+    <section class="scanner-card">
+      <div class="scanner-area" id="scannerArea">
+        <div id="qr-reader"></div>
+        <div class="scanner-overlay">
+          <div class="scan-frame">
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+            <div class="scan-line"></div>
+          </div>
+          <div class="scan-text">
+            <i class="fas fa-qrcode"></i>
+            <span id="scanStatusText">Arahkan ke QR mahasiswa</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-line" id="presensiStatus">Menunggu scan...</div>
+
+      <div class="scanner-controls">
+        <button class="btn-scan" id="btnStartScan" onclick="toggleScanner()">
+          <i class="fas fa-play"></i> <span id="btnScanLabel">Mulai Scan</span>
+        </button>
+        <button class="btn-flash" id="btnFlash" onclick="toggleFlash()" title="Flash">
+          <i class="fas fa-bolt"></i>
+        </button>
+      </div>
+    </section>
+
+    <details class="admin">
+      <summary><i class="fas fa-id-card"></i> Buat QR Mahasiswa <i class="fas fa-chevron-down"></i></summary>
+      <div class="admin-body">
+        <p>Dipakai sekali per mahasiswa untuk cetak/simpan QR — atau biarkan mahasiswa generate sendiri lewat halaman "Absen". Kalau NIM belum terdaftar, sistem otomatis minta data buat daftar dulu.</p>
+        <div class="qr-input-group">
+          <input type="text" id="qrNimInput" placeholder="Masukkan NIM" maxlength="12">
+          <button onclick="checkNimAndGenerate()"><i class="fas fa-qrcode"></i> Buat</button>
+        </div>
+
+        <div class="form-daftar" id="formDaftarBaru">
+          <p class="form-daftar-info"><i class="fas fa-circle-info"></i> NIM <strong id="daftarNimLabel"></strong> belum terdaftar. Isi data mahasiswa baru di bawah:</p>
+          <div class="form-daftar-fields">
+            <input type="text" id="daftarNamaInput" placeholder="Nama lengkap">
+            <input type="text" id="daftarKelasInput" placeholder="Kelas (mis. TI-4A)">
+          </div>
+          <p class="form-daftar-note">Jurusan otomatis diisi: <strong>Teknik Informatika</strong></p>
+          <div class="form-daftar-actions">
+            <button class="btn-daftar" id="btnDaftarBaru" onclick="daftarMahasiswaBaru()"><i class="fas fa-user-plus"></i> Daftar & Buat QR</button>
+            <button class="btn-batal-daftar" onclick="batalDaftarBaru()">Batal</button>
+          </div>
+        </div>
+
+        <div class="qr-preview" id="qrPreview">
+          <img id="qrResultImage" src="" alt="QR Code">
+          <div class="qr-info" id="qrInfo"></div>
+          <div class="qr-actions">
+            <button class="btn-download" onclick="downloadQRCode()"><i class="fas fa-download"></i> Download</button>
+            <button class="btn-close" onclick="closeQRPreview()"><i class="fas fa-times"></i> Tutup</button>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <section class="data-section">
+      <div class="data-header">
+        <span class="title"><i class="fas fa-users"></i> Daftar Mahasiswa</span>
+        <span class="count" id="totalMahasiswa">0/0 hadir</span>
+        <button class="refresh" id="btnRefresh" onclick="loadDataMahasiswa()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchMahasiswa" placeholder="Cari nama / NIM..." oninput="renderDataTable()">
+        </div>
+      </div>
+      <div class="table-wrapper" id="tableWrapper">
+        <div class="loading-text" id="loadingData">
+          <i class="fas fa-spinner fa-spin"></i> Memuat data...
+        </div>
+        <table id="dataTable" style="display:none;">
+          <thead>
+            <tr><th>NIM</th><th>Nama</th><th>Kelas</th><th>Status</th></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <i class="fas fa-shield-alt"></i> Terhubung dengan
+      <a href="https://docs.google.com/spreadsheets/d/170c9j3SqP2jX-inMkgptjZFQfTjEHAuXa3_YcbiEoEc/edit?" id="sheetLink" target="_blank">Google Sheets</a>
+    </footer>
+  </div>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="assets/common.js"></script>
+<script>
+  // ================================================================
+  // STATE
+  // ================================================================
+  const AppState = {
+    scannerRunning: false,
+    flashOn: false,
+    isProcessing: false,
+    html5QrCode: null,
+    mahasiswaData: [],
+    hadirHariIni: new Map(), // nim -> waktu ("08:15")
+  };
+
+  let dataLoopTimer = null;
+
+  // ================================================================
+  // DOM REFS
+  // ================================================================
+  const DOM = {
+    scanStatus: document.getElementById('scanStatusText'),
+    presensiStatus: document.getElementById('presensiStatus'),
+    btnStartScan: document.getElementById('btnStartScan'),
+    btnFlash: document.getElementById('btnFlash'),
+    btnRefresh: document.getElementById('btnRefresh'),
+    tableBody: document.getElementById('tableBody'),
+    dataTable: document.getElementById('dataTable'),
+    loadingData: document.getElementById('loadingData'),
+    totalMahasiswa: document.getElementById('totalMahasiswa'),
+    searchMahasiswa: document.getElementById('searchMahasiswa'),
+    qrNimInput: document.getElementById('qrNimInput'),
+    qrResultImage: document.getElementById('qrResultImage'),
+    qrInfo: document.getElementById('qrInfo'),
+    qrPreview: document.getElementById('qrPreview'),
+    formDaftarBaru: document.getElementById('formDaftarBaru'),
+    daftarNimLabel: document.getElementById('daftarNimLabel'),
+    daftarNamaInput: document.getElementById('daftarNamaInput'),
+    daftarKelasInput: document.getElementById('daftarKelasInput'),
+    btnDaftarBaru: document.getElementById('btnDaftarBaru')
+  };
+
+  document.getElementById('matkulLabel').textContent = MATA_KULIAH;
+  document.getElementById('sheetLink').href = SHEET_URL;
+
+  // ================================================================
+  // RENDER & UPDATE TABEL
+  // ================================================================
+  function renderDataTable() {
+    DOM.tableBody.innerHTML = '';
+    const q = (DOM.searchMahasiswa.value || '').trim().toLowerCase();
+    const data = AppState.mahasiswaData.filter(m =>
+      !q || (m.nim || '').toLowerCase().includes(q) || (m.nama || '').toLowerCase().includes(q)
+    );
+
+    if (!AppState.mahasiswaData.length) {
+      DOM.loadingData.innerHTML = '<i class="fas fa-info-circle"></i> Tidak ada data';
+      DOM.loadingData.style.display = 'block';
+      DOM.dataTable.style.display = 'none';
+      return;
+    }
+
+    if (!data.length) {
+      DOM.loadingData.innerHTML = '<i class="fas fa-search"></i> Tidak ketemu "' + escapeHtml(q) + '"';
+      DOM.loadingData.style.display = 'block';
+      DOM.dataTable.style.display = 'none';
+      return;
+    }
+
+    data.forEach((mhs) => {
+      const waktu = AppState.hadirHariIni.get(mhs.nim);
+      const isHadir = !!waktu;
+      const row = document.createElement('tr');
+      row.dataset.nim = mhs.nim;
+      row.innerHTML = `
+        <td><strong>${escapeHtml(mhs.nim) || '-'}</strong></td>
+        <td>${escapeHtml(mhs.nama) || '-'}</td>
+        <td>${escapeHtml(mhs.kelas) || '-'}</td>
+        <td>
+          <span class="${isHadir ? 'status-hadir' : 'status-belum'}">
+            <i class="fas ${isHadir ? 'fa-check-circle' : 'fa-circle'}"></i> ${isHadir ? 'Hadir' : 'Belum'}
+          </span>
+          ${isHadir ? `<div class="status-time">${escapeHtml(waktu)}</div>` : ''}
+        </td>
+      `;
+      DOM.tableBody.appendChild(row);
+    });
+
+    DOM.loadingData.style.display = 'none';
+    DOM.dataTable.style.display = 'table';
+    DOM.totalMahasiswa.textContent = AppState.hadirHariIni.size + '/' + AppState.mahasiswaData.length + ' hadir';
+  }
+
+  // Update satu baris tanpa nunggu refresh berikutnya — dipanggil tepat
+  // setelah scan sukses, biar responsnya kerasa instan. Refresh berikutnya
+  // (dari server) tetap jadi sumber kebenaran, jadi walau tab di-reload
+  // status ini gak balik ke "Belum" lagi (bug lama sudah diperbaiki di backend).
+  function updateStatusInTable(nim, waktu) {
+    AppState.hadirHariIni.set(nim, waktu || '-');
+    renderDataTable();
+  }
+
+  // ================================================================
+  // LOAD DATA (roster + status hadir hari ini) DARI GOOGLE SHEETS
+  // ================================================================
+  async function loadDataMahasiswa() {
+    DOM.btnRefresh.classList.add('spin');
+    const isOnline = await checkConnection();
+
+    if (!isOnline) {
+      DOM.btnRefresh.classList.remove('spin');
+      if (AppState.mahasiswaData.length > 0) {
+        showStatus('Offline — menampilkan data terakhir', 'warning', 3000);
+        return;
+      }
+      DOM.loadingData.innerHTML = `
+        <i class="fas fa-wifi" style="color:#f87171;font-size:26px;display:block;margin-bottom:12px;"></i>
+        <strong style="color:#f87171;">Tidak ada koneksi</strong>
+        <br><button class="btn-retry" onclick="loadDataMahasiswa()"><i class="fas fa-sync-alt"></i> Coba lagi</button>
+      `;
+      DOM.loadingData.style.display = 'block';
+      DOM.dataTable.style.display = 'none';
+      return;
+    }
+
+    try {
+      const qMatkul = '&matkul=' + encodeURIComponent(MATA_KULIAH);
+      const [mahasiswaRes, presensiRes] = await Promise.all([
+        fetch(WEB_APP_URL + '?action=get_all', { signal: AbortSignal.timeout(15000) }),
+        fetch(WEB_APP_URL + '?action=get_presensi_today' + qMatkul, { signal: AbortSignal.timeout(15000) })
+      ]);
+
+      const mahasiswaData = await mahasiswaRes.json();
+      const presensiToday = await presensiRes.json();
+
+      if (Array.isArray(mahasiswaData) && mahasiswaData.length > 0) {
+        AppState.mahasiswaData = mahasiswaData;
+        AppState.hadirHariIni = new Map(
+          (Array.isArray(presensiToday) ? presensiToday : []).map(p => [p.nim, p.waktu])
+        );
+        renderDataTable();
+      } else {
+        DOM.loadingData.innerHTML = `
+          <i class="fas fa-info-circle" style="color:#fbbf24;font-size:22px;display:block;margin-bottom:10px;"></i>
+          <strong>Belum ada data mahasiswa</strong>
+          <br><a class="btn-retry" href="${SHEET_URL}" target="_blank"><i class="fas fa-external-link-alt"></i> Buka Sheet</a>
+        `;
+        DOM.loadingData.style.display = 'block';
+        DOM.dataTable.style.display = 'none';
+      }
+    } catch (error) {
+      showStatus('Gagal memuat data: ' + error.message, 'error');
+      if (AppState.mahasiswaData.length === 0) {
+        DOM.loadingData.innerHTML = `
+          <i class="fas fa-exclamation-circle" style="color:#ef4444;font-size:22px;display:block;margin-bottom:10px;"></i>
+          <strong>Gagal memuat data</strong>
+          <br><button class="btn-retry" onclick="loadDataMahasiswa()"><i class="fas fa-sync-alt"></i> Coba lagi</button>
+        `;
+        DOM.loadingData.style.display = 'block';
+      }
+    } finally {
+      DOM.btnRefresh.classList.remove('spin');
+    }
+  }
+
+  // ================================================================
+  // BUAT QR PER MAHASISWA (admin)
+  // ================================================================
+  function checkNimAndGenerate() {
+    const nim = DOM.qrNimInput.value.trim();
+    if (!nim) { showStatus('Masukkan NIM terlebih dahulu', 'error'); DOM.qrNimInput.focus(); return; }
+
+    const mahasiswa = AppState.mahasiswaData.find(m => m.nim === nim);
+    if (mahasiswa) {
+      hideFormDaftarBaru();
+      tampilkanQR(mahasiswa);
+    } else {
+      showFormDaftarBaru(nim);
+    }
+  }
+
+  function showFormDaftarBaru(nim) {
+    DOM.qrPreview.classList.remove('show');
+    DOM.daftarNimLabel.textContent = nim;
+    DOM.daftarNamaInput.value = '';
+    DOM.daftarKelasInput.value = '';
+    DOM.formDaftarBaru.classList.add('show');
+    DOM.daftarNamaInput.focus();
+  }
+
+  function hideFormDaftarBaru() {
+    DOM.formDaftarBaru.classList.remove('show');
+  }
+
+  function batalDaftarBaru() {
+    hideFormDaftarBaru();
+    DOM.qrNimInput.value = '';
+  }
+
+  async function daftarMahasiswaBaru() {
+    const nim = DOM.qrNimInput.value.trim();
+    const nama = DOM.daftarNamaInput.value.trim();
+    const kelas = DOM.daftarKelasInput.value.trim();
+
+    if (!nama) { showStatus('Nama wajib diisi', 'error'); DOM.daftarNamaInput.focus(); return; }
+    if (!kelas) { showStatus('Kelas wajib diisi', 'error'); DOM.daftarKelasInput.focus(); return; }
+
+    DOM.btnDaftarBaru.disabled = true;
+    DOM.btnDaftarBaru.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mendaftarkan...';
+
+    try {
+      const response = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'daftar_mahasiswa', nim, nama, kelas, jurusan: JURUSAN_DEFAULT })
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        AppState.mahasiswaData.push(result.data);
+        renderDataTable();
+        hideFormDaftarBaru();
+        showStatus(`${result.data.nama} berhasil didaftarkan`, 'success');
+        tampilkanQR(result.data);
+      } else {
+        showStatus(result.message || 'Gagal mendaftarkan mahasiswa', 'error');
+      }
+    } catch (error) {
+      showStatus('Error: ' + error.message, 'error');
+    } finally {
+      DOM.btnDaftarBaru.disabled = false;
+      DOM.btnDaftarBaru.innerHTML = '<i class="fas fa-user-plus"></i> Daftar & Buat QR';
+    }
+  }
+
+  function tampilkanQR(mahasiswa) {
+    DOM.qrResultImage.src = qrImageUrl(mahasiswa.nim, 300);
+    DOM.qrInfo.innerHTML = `<strong>${escapeHtml(mahasiswa.nim)}</strong> &bull; ${escapeHtml(mahasiswa.nama)} &bull; Kelas ${escapeHtml(mahasiswa.kelas)}`;
+    DOM.qrPreview.classList.add('show');
+    showStatus(`QR untuk ${mahasiswa.nama} siap`, 'success');
+  }
+
+  function downloadQRCode() {
+    if (!DOM.qrResultImage.src) return;
+    const link = document.createElement('a');
+    const nim = DOM.qrNimInput.value.trim() || 'mahasiswa';
+    link.download = `qr-${nim}.png`;
+    link.href = DOM.qrResultImage.src;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function closeQRPreview() {
+    DOM.qrPreview.classList.remove('show');
+    DOM.qrNimInput.value = '';
+  }
+
+  // ================================================================
+  // SCANNER
+  // ================================================================
+  function toggleScanner() {
+    AppState.scannerRunning ? stopScanner() : startScanner();
+  }
+
+  function startScanner() {
+    if (AppState.scannerRunning) return;
+
+    if (AppState.html5QrCode) {
+      try { AppState.html5QrCode.clear(); AppState.html5QrCode = null; } catch (e) {}
+    }
+    const readerEl = document.getElementById('qr-reader');
+    if (!readerEl) return;
+    readerEl.innerHTML = '';
+
+    DOM.btnStartScan.classList.add('stop');
+    DOM.btnStartScan.innerHTML = '<i class="fas fa-stop"></i> <span id="btnScanLabel">Stop Scan</span>';
+
+    AppState.html5QrCode = new Html5Qrcode('qr-reader', {
+      verbose: false,
+      formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+    });
+
+    const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+
+    AppState.html5QrCode.start({ facingMode: 'environment' }, config, onScanSuccess, () => {})
+      .then(onScannerStarted)
+      .catch(() => {
+        AppState.html5QrCode.start({ facingMode: 'user' }, config, onScanSuccess, () => {})
+          .then(onScannerStarted)
+          .catch((err2) => {
+            showStatus('Gagal akses kamera: ' + err2.message, 'error');
+            resetScannerButton();
+          });
+      });
+  }
+
+  function onScannerStarted() {
+    AppState.scannerRunning = true;
+    DOM.scanStatus.textContent = 'Mendeteksi QR...';
+    DOM.presensiStatus.textContent = 'Mendeteksi...';
+  }
+
+  function stopScanner() {
+    if (AppState.html5QrCode && AppState.scannerRunning) {
+      AppState.html5QrCode.stop().then(() => {
+        AppState.html5QrCode.clear();
+        AppState.html5QrCode = null;
+        AppState.scannerRunning = false;
+        resetScannerButton();
+        if (DOM.scanStatus) DOM.scanStatus.textContent = 'Scanner berhenti';
+        if (DOM.presensiStatus) DOM.presensiStatus.textContent = 'Scanner berhenti';
+      }).catch(() => {});
+    } else {
+      AppState.scannerRunning = false;
+      resetScannerButton();
+    }
+  }
+
+  function resetScannerButton() {
+    if (!DOM.btnStartScan) return;
+    DOM.btnStartScan.classList.remove('stop');
+    DOM.btnStartScan.innerHTML = '<i class="fas fa-play"></i> <span id="btnScanLabel">Mulai Scan</span>';
+  }
+
+  function onScanSuccess(decodedText) {
+    if (AppState.isProcessing) return;
+    AppState.isProcessing = true;
+
+    if (AppState.html5QrCode && AppState.scannerRunning) {
+      AppState.html5QrCode.stop().then(() => {
+        AppState.scannerRunning = false;
+        resetScannerButton();
+      }).catch(() => {});
+    }
+
+    processPresensi(decodedText);
+  }
+
+  // ================================================================
+  // PROSES PRESENSI
+  // Validasi NIM terdaftar dicek dulu di client (instan). Sudah-presensi-
+  // hari-ini & penyimpanan divalidasi di server — sheet "Presensi" adalah
+  // sumber kebenaran, dibaca ulang tiap refresh, jadi status gak balik ke
+  // "Belum" lagi setelah reload.
+  // ================================================================
+  async function processPresensi(qrData) {
+    try {
+      showStatus('Memproses presensi...', 'info', 5000);
+
+      let nim = '';
+      try {
+        nim = (JSON.parse(qrData).nim || '').toString().trim();
+      } catch (e) {
+        nim = qrData.trim();
+      }
+
+      if (!nim || nim.length < 3) {
+        showStatus('QR tidak valid', 'error');
+        DOM.presensiStatus.textContent = 'QR tidak valid';
+        return;
+      }
+
+      const mahasiswa = AppState.mahasiswaData.find(m => m.nim === nim);
+      if (!mahasiswa) {
+        showStatus(`NIM ${nim} tidak terdaftar!`, 'error');
+        DOM.presensiStatus.textContent = 'NIM tidak terdaftar';
+        return;
+      }
+
+      const response = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'presensi', nim: nim, mataKuliah: MATA_KULIAH })
+      });
+      const result = await response.json();
+
+      const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+      if (result.success && !result.alreadyPresent) {
+        updateStatusInTable(nim, jam);
+        showStatus(`${mahasiswa.nama} HADIR!`, 'success');
+        DOM.presensiStatus.textContent = `✓ ${mahasiswa.nama} hadir`;
+      } else if (result.alreadyPresent) {
+        updateStatusInTable(nim, AppState.hadirHariIni.get(nim) || jam);
+        showStatus(result.message, 'warning');
+        DOM.presensiStatus.textContent = 'Sudah presensi';
+      } else {
+        showStatus(result.message || 'Gagal menyimpan presensi', 'error');
+        DOM.presensiStatus.textContent = 'Gagal, coba lagi';
+      }
+
+    } catch (error) {
+      showStatus('Error: ' + error.message, 'error');
+      DOM.presensiStatus.textContent = 'Error';
+    } finally {
+      setTimeout(() => {
+        AppState.isProcessing = false;
+        if (DOM.scanStatus) DOM.scanStatus.textContent = 'Arahkan ke QR mahasiswa';
+        if (!AppState.scannerRunning) startScanner();
+      }, SCAN_COOLDOWN_MS);
+    }
+  }
+
+  // ================================================================
+  // FLASH
+  // ================================================================
+  function toggleFlash() {
+    AppState.flashOn = !AppState.flashOn;
+    DOM.btnFlash.classList.toggle('active', AppState.flashOn);
+    try {
+      const video = AppState.html5QrCode && AppState.html5QrCode._videoElement;
+      const track = video && video.srcObject && video.srcObject.getVideoTracks()[0];
+      if (track && track.getCapabilities && track.getCapabilities().torch) {
+        track.applyConstraints({ advanced: [{ torch: AppState.flashOn }] });
+      }
+    } catch (e) {}
+  }
+
+  // ================================================================
+  // INIT
+  // ================================================================
+  DOM.presensiStatus.textContent = 'Menunggu scan...';
+  loadDataMahasiswa();
+  dataLoopTimer = setInterval(loadDataMahasiswa, SYNC_INTERVAL_MS);
+  startScanner();
+
+  window.addEventListener('beforeunload', function () {
+    if (AppState.html5QrCode && AppState.scannerRunning) {
+      AppState.html5QrCode.stop().then(() => AppState.html5QrCode.clear()).catch(() => {});
+    }
+  });
+</script>
+
+</body>
+</html>

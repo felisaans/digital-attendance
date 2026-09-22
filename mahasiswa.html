@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Absen Mahasiswa — Presensi Kelas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-topbar">
+  <a class="btn-back" href="index.html" title="Kembali"><i class="fas fa-arrow-left"></i></a>
+  <div>
+    <h2>Absen Mahasiswa</h2>
+    <div class="sub">Tunjukkan QR ini ke kamera dosen</div>
+  </div>
+</div>
+
+<div class="app-body">
+  <div class="mhs-wrap">
+    <div id="status"></div>
+
+    <div class="mhs-card">
+      <div id="mhsFormWrap">
+        <h3>Masukkan NIM kamu</h3>
+        <p class="mhs-sub">QR pribadi kamu akan muncul — tunjukkan ke kamera dosen untuk absen.</p>
+        <div class="mhs-form">
+          <input type="text" id="mhsNimInput" placeholder="Contoh: 2210201001" maxlength="12" inputmode="numeric">
+          <button id="btnMhsTampilkan" onclick="mhsTampilkanQR()"><i class="fas fa-qrcode"></i> Tampilkan QR Saya</button>
+        </div>
+        <div class="mhs-error" id="mhsError"><i class="fas fa-circle-exclamation"></i> <span></span></div>
+      </div>
+
+      <div class="mhs-qr-wrap" id="mhsQrWrap">
+        <div class="mhs-name" id="mhsNama">-</div>
+        <div class="mhs-meta" id="mhsMeta">-</div>
+        <div class="mhs-qr-box"><img id="mhsQrImage" src="" alt="QR Mahasiswa"></div>
+        <div class="mhs-status waiting" id="mhsStatus"><i class="fas fa-circle-notch"></i> <span>Menunggu di-scan dosen...</span></div>
+        <br>
+        <button class="mhs-ganti" onclick="mhsGantiNim()">Bukan kamu? Ganti NIM</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="assets/common.js"></script>
+<script>
+  const AppState = {
+    mahasiswaData: [],
+    mhsPollTimer: null,
+    mhsCurrentNim: null
+  };
+
+  const DOM = {
+    mhsNimInput: document.getElementById('mhsNimInput'),
+    mhsError: document.getElementById('mhsError'),
+    mhsFormWrap: document.getElementById('mhsFormWrap'),
+    mhsQrWrap: document.getElementById('mhsQrWrap'),
+    mhsNama: document.getElementById('mhsNama'),
+    mhsMeta: document.getElementById('mhsMeta'),
+    mhsQrImage: document.getElementById('mhsQrImage'),
+    mhsStatus: document.getElementById('mhsStatus'),
+    btnMhsTampilkan: document.getElementById('btnMhsTampilkan')
+  };
+
+  // ================================================================
+  // LOAD ROSTER (dipakai buat validasi NIM)
+  // ================================================================
+  async function loadDataMahasiswa() {
+    const isOnline = await checkConnection();
+    if (!isOnline) return;
+    try {
+      const res = await fetch(WEB_APP_URL + '?action=get_all', { signal: AbortSignal.timeout(15000) });
+      const data = await res.json();
+      if (Array.isArray(data)) AppState.mahasiswaData = data;
+    } catch (e) {}
+  }
+
+  function initMahasiswaMode() {
+    DOM.mhsError.classList.remove('show');
+    const savedNim = localStorage.getItem('presensi_nim') || '';
+    DOM.mhsNimInput.value = savedNim;
+    if (savedNim && AppState.mahasiswaData.length) {
+      mhsTampilkanQR();
+    } else {
+      DOM.mhsFormWrap.style.display = 'block';
+      DOM.mhsQrWrap.classList.remove('show');
+    }
+    if (!AppState.mahasiswaData.length) {
+      loadDataMahasiswa().then(() => {
+        if (savedNim) mhsTampilkanQR();
+      });
+    }
+  }
+
+  async function mhsTampilkanQR() {
+    const nim = DOM.mhsNimInput.value.trim();
+    DOM.mhsError.classList.remove('show');
+
+    if (!nim) {
+      DOM.mhsError.querySelector('span').textContent = 'Masukkan NIM dulu ya.';
+      DOM.mhsError.classList.add('show');
+      return;
+    }
+
+    if (!AppState.mahasiswaData.length) {
+      await loadDataMahasiswa();
+    }
+
+    const mahasiswa = AppState.mahasiswaData.find(m => m.nim === nim);
+    if (!mahasiswa) {
+      DOM.mhsError.querySelector('span').textContent = `NIM ${nim} belum terdaftar. Minta dosen daftarkan dulu lewat "Buat QR Mahasiswa".`;
+      DOM.mhsError.classList.add('show');
+      return;
+    }
+
+    localStorage.setItem('presensi_nim', nim);
+    AppState.mhsCurrentNim = nim;
+
+    DOM.mhsNama.textContent = mahasiswa.nama;
+    DOM.mhsMeta.textContent = `${mahasiswa.nim} · Kelas ${mahasiswa.kelas} · ${MATA_KULIAH}`;
+    DOM.mhsQrImage.src = qrImageUrl(mahasiswa.nim, 260);
+
+    DOM.mhsFormWrap.style.display = 'none';
+    DOM.mhsQrWrap.classList.add('show');
+
+    startMhsPolling(nim);
+  }
+
+  function mhsGantiNim() {
+    stopMhsPolling();
+    localStorage.removeItem('presensi_nim');
+    DOM.mhsNimInput.value = '';
+    DOM.mhsFormWrap.style.display = 'block';
+    DOM.mhsQrWrap.classList.remove('show');
+    DOM.mhsNimInput.focus();
+  }
+
+  function startMhsPolling(nim) {
+    stopMhsPolling();
+    checkMhsStatus(nim);
+    AppState.mhsPollTimer = setInterval(() => checkMhsStatus(nim), MHS_POLL_MS);
+  }
+
+  function stopMhsPolling() {
+    if (AppState.mhsPollTimer) { clearInterval(AppState.mhsPollTimer); AppState.mhsPollTimer = null; }
+  }
+
+  async function checkMhsStatus(nim) {
+    try {
+      const res = await fetch(WEB_APP_URL + '?action=get_presensi_today&matkul=' + encodeURIComponent(MATA_KULIAH), {
+        signal: AbortSignal.timeout(10000)
+      });
+      const list = await res.json();
+      const entry = Array.isArray(list) ? list.find(p => p.nim === nim) : null;
+
+      if (entry) {
+        DOM.mhsStatus.className = 'mhs-status hadir';
+        DOM.mhsStatus.innerHTML = `<i class="fas fa-check-circle"></i> <span>Hadir tercatat pukul ${escapeHtml(entry.waktu)}</span>`;
+        stopMhsPolling();
+      } else {
+        DOM.mhsStatus.className = 'mhs-status waiting';
+        DOM.mhsStatus.innerHTML = `<i class="fas fa-circle-notch"></i> <span>Menunggu di-scan dosen...</span>`;
+      }
+    } catch (e) {
+      // diam-diam gagal, coba lagi di polling berikutnya — gak ganggu tampilan
+    }
+  }
+
+  // ================================================================
+  // INIT
+  // ================================================================
+  initMahasiswaMode();
+
+  window.addEventListener('beforeunload', stopMhsPolling);
+</script>
+
+</body>
+</html>
